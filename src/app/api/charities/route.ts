@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const charityId = searchParams.get('id')
-    const campaignId = searchParams.get('campaign_id')
 
     // Fetch single charity by ID
     if (charityId) {
@@ -23,32 +22,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(charity)
     }
 
-    if (campaignId) {
-      // Fetch ALL charities + vote counts for this campaign in parallel
-      const [charitiesRes, votesRes] = await Promise.all([
-        supabase.from('charities').select('id, name, description, website_url, logo_url').order('name'),
-        supabase.from('charity_votes').select('charity_id').eq('campaign_id', campaignId),
-      ])
-
-      if (charitiesRes.error) {
-        return NextResponse.json({ error: 'Failed to fetch charities' }, { status: 500 })
-      }
-
-      // Count votes per charity
-      const voteCounts: Record<string, number> = {}
-      for (const vote of votesRes.data ?? []) {
-        voteCounts[vote.charity_id] = (voteCounts[vote.charity_id] ?? 0) + 1
-      }
-
-      // Merge and sort: voted charities first, then rest alphabetically
-      const result = (charitiesRes.data ?? [])
-        .map((charity) => ({ ...charity, vote_count: voteCounts[charity.id] ?? 0 }))
-        .sort((a, b) => b.vote_count - a.vote_count)
-
-      return NextResponse.json(result)
-    }
-
-    // No campaign_id: return all charities ordered by name
+    // Return all charities ordered by name
     const { data: charities, error } = await supabase
       .from('charities')
       .select('id, name, description, website_url, logo_url')

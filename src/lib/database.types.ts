@@ -220,45 +220,6 @@ export interface Database {
         }
         Relationships: []
       }
-      charity_votes: {
-        Row: {
-          id: string
-          campaign_id: string
-          charity_id: string
-          ip_hash: string
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          campaign_id: string
-          charity_id: string
-          ip_hash: string
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          campaign_id?: string
-          charity_id?: string
-          ip_hash?: string
-          created_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'charity_votes_campaign_id_fkey'
-            columns: ['campaign_id']
-            isOneToOne: false
-            referencedRelation: 'campaigns'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'charity_votes_charity_id_fkey'
-            columns: ['charity_id']
-            isOneToOne: false
-            referencedRelation: 'charities'
-            referencedColumns: ['id']
-          },
-        ]
-      }
     }
     Views: {
       [_ in never]: never
