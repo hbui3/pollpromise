@@ -57,6 +57,7 @@ interface Campaign {
   verification_method: string
   completion_code: string | null
   locked_charity_id: string | null
+  is_public: boolean
   status: string
   donation_confirmed: boolean
   donation_proof_url: string | null
