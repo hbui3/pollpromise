@@ -18,9 +18,9 @@ export default function DatenschutzPage() {
             Verantwortlich für die Datenverarbeitung auf dieser Website ist:
           </p>
           <p>
-            [Vor- und Nachname]<br />
+            Hendrik Buisker<br />
             Schweiz<br />
-            E-Mail: <a href="mailto:kontakt@pollpromise.de" className="text-primary hover:underline">kontakt@pollpromise.de</a>
+            <a href="/kontakt" className="text-primary hover:underline">Kontaktformular</a>
           </p>
         </CardContent>
       </Card>
@@ -31,7 +31,7 @@ export default function DatenschutzPage() {
         </CardHeader>
         <CardContent className="text-sm leading-relaxed text-muted-foreground space-y-2">
           <p>
-            Diese Datenschutzerklärung gilt für die Website pollpromise.de. Der Betreiber hat seinen
+            Diese Datenschutzerklärung gilt für die Website pollpromise.com. Der Betreiber hat seinen
             Sitz in der Schweiz; es gilt das Schweizer Datenschutzgesetz (DSG). Da sich die Website
             auch an Nutzer in der Europäischen Union richtet, werden zusätzlich die Anforderungen
             der EU-Datenschutz-Grundverordnung (DSGVO) berücksichtigt.
@@ -72,9 +72,9 @@ export default function DatenschutzPage() {
           <div>
             <p className="font-medium text-foreground">3.3 Lokale Speicherung (localStorage)</p>
             <p>
-              Zusätzlich speichert die Website im localStorage Ihres Browsers, an welchen Kampagnen
-              Sie bereits teilgenommen haben. Diese Daten werden <strong>nicht</strong> an unseren
-              Server übertragen und verbleiben ausschliesslich auf Ihrem Gerät. Sie können diese
+              Zusätzlich speichert die Website im localStorage deines Browsers, an welchen Kampagnen
+              du bereits teilgenommen hast. Diese Daten werden <strong>nicht</strong> an unseren
+              Server übertragen und verbleiben ausschliesslich auf deinem Gerät. Du kannst diese
               Daten jederzeit über die Browser-Einstellungen löschen.
             </p>
           </div>
@@ -107,8 +107,8 @@ export default function DatenschutzPage() {
             Namen, Adressen) auf dem Bild zu schwärzen oder unkenntlich zu machen.
           </p>
           <p>
-            Sollte ein bereits veröffentlichter Spendennachweis sensible Daten enthalten, können
-            Sie über unsere <a href="/kontakt" className="text-primary hover:underline">Kontaktseite</a> eine
+            Sollte ein bereits veröffentlichter Spendennachweis sensible Daten enthalten,
+            kannst du über unsere <a href="/kontakt" className="text-primary hover:underline">Kontaktseite</a> eine
             Löschung beantragen.
           </p>
         </CardContent>
@@ -148,31 +148,13 @@ export default function DatenschutzPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">7. Ihre Rechte</CardTitle>
+          <CardTitle className="text-lg">7. Deine Rechte</CardTitle>
         </CardHeader>
         <CardContent className="text-sm leading-relaxed text-muted-foreground space-y-2">
-          <p className="font-medium text-foreground">Nach DSGVO (EU-Nutzer):</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Auskunft</strong> über die bei uns gespeicherten Daten (Art. 15 DSGVO)</li>
-            <li><strong>Berichtigung</strong> unrichtiger Daten (Art. 16 DSGVO)</li>
-            <li><strong>Löschung</strong> Ihrer Daten (Art. 17 DSGVO)</li>
-            <li><strong>Einschränkung</strong> der Verarbeitung (Art. 18 DSGVO)</li>
-            <li><strong>Widerspruch</strong> gegen die Verarbeitung (Art. 21 DSGVO)</li>
-            <li><strong>Datenübertragbarkeit</strong> (Art. 20 DSGVO)</li>
-            <li><strong>Beschwerde</strong> bei einer Aufsichtsbehörde (Art. 77 DSGVO)</li>
-          </ul>
-          <p className="font-medium text-foreground mt-4">Nach DSG (Schweizer Nutzer):</p>
-          <ul className="list-disc list-inside space-y-1 ml-2">
-            <li><strong>Auskunft</strong> über die Bearbeitung Ihrer Personendaten (Art. 25 DSG)</li>
-            <li><strong>Herausgabe oder Übertragung</strong> Ihrer Daten (Art. 28 DSG)</li>
-            <li><strong>Berichtigung</strong> unrichtiger Personendaten (Art. 32 DSG)</li>
-            <li><strong>Beschwerde</strong> beim Eidgenössischen Datenschutz- und Öffentlichkeitsbeauftragten (EDÖB)</li>
-          </ul>
-          <p className="mt-3">
-            Kontaktieren Sie uns hierzu unter{' '}
-            <a href="mailto:kontakt@pollpromise.de" className="text-primary hover:underline">
-              kontakt@pollpromise.de
-            </a>.
+          <p>
+            Du hast jederzeit das Recht auf Auskunft, Berichtigung, Löschung und Einschränkung
+            deiner Daten (DSGVO Art. 15–21; DSG Art. 25–32). Wende dich dazu an unser{' '}
+            <a href="/kontakt" className="text-primary hover:underline">Kontaktformular</a>.
           </p>
         </CardContent>
       </Card>
@@ -185,7 +167,7 @@ export default function DatenschutzPage() {
           <p>
             Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den
             aktuellen rechtlichen Anforderungen entspricht oder um Änderungen unserer Leistungen
-            umzusetzen. Für Ihren erneuten Besuch gilt dann die neue Datenschutzerklärung.
+            umzusetzen. Für deinen erneuten Besuch gilt dann die neue Datenschutzerklärung.
           </p>
           <p className="mt-2 text-xs text-muted-foreground">
             Stand: März 2026

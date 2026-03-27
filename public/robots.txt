@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pollpromise.de/sitemap.xml
+Sitemap: https://pollpromise.com/sitemap.xml

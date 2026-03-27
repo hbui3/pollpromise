@@ -17,13 +17,13 @@ export default function ImpressumPage() {
           <div>
             <p className="font-medium">PollPromise</p>
             <p>Nicht-kommerzielles Open-Source-Projekt</p>
-            <p>[Vor- und Nachname des Betreibers]</p>
+            <p>Hendrik Buisker</p>
             <p>Schweiz</p>
           </div>
 
           <div>
             <p className="font-medium">Kontakt</p>
-            <p>E-Mail: <a href="mailto:kontakt@pollpromise.de" className="text-primary hover:underline">kontakt@pollpromise.de</a></p>
+            <p><a href="/kontakt" className="text-primary hover:underline">Kontaktformular</a></p>
           </div>
 
           <div className="text-xs text-muted-foreground border-t pt-3">

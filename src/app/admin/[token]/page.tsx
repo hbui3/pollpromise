@@ -38,6 +38,7 @@ import {
   Upload,
   Loader2,
   UserCheck,
+  Trash2,
 } from 'lucide-react'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -206,6 +207,12 @@ export default function AdminDashboardPage() {
   const [copied, setCopied] = useState(false)
   const [actionLoading, setActionLoading] = useState(false)
 
+  // Screenshot lightbox
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
+
+  // Delete dialog
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
   // Donation confirmation dialog
   const [showDonationDialog, setShowDonationDialog] = useState(false)
   const [donationProofFile, setDonationProofFile] = useState<File | null>(null)
@@ -363,6 +370,24 @@ export default function AdminDashboardPage() {
     }
   }
 
+  async function handleDeleteCampaign() {
+    if (!campaign) return
+    setActionLoading(true)
+    try {
+      const res = await fetch('/api/campaigns', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_token: token }),
+      })
+      if (res.ok) {
+        window.location.href = '/kampagnen'
+      }
+    } catch {
+      // silent
+    }
+    setActionLoading(false)
+  }
+
   function handleCopyLink() {
     if (!campaign) return
     const url = `${window.location.origin}/s/${campaign.slug}`
@@ -402,7 +427,7 @@ export default function AdminDashboardPage() {
         <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
         <h1 className="text-2xl font-bold mb-2">{error ?? 'Kampagne nicht gefunden'}</h1>
         <p className="text-muted-foreground">
-          Bitte überprüfen Sie den Link oder versuchen Sie es später erneut.
+          Bitte überprüfe den Link oder versuche es später erneut.
         </p>
       </div>
     )
@@ -428,7 +453,17 @@ export default function AdminDashboardPage() {
     <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl font-bold truncate">{campaign.title}</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">{campaign.title}</h1>
+            <button
+              type="button"
+              onClick={() => setShowDeleteDialog(true)}
+              className="text-muted-foreground/50 hover:text-destructive transition-colors shrink-0"
+              title="Kampagne löschen"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
           <p className="text-sm text-muted-foreground">Admin-Dashboard</p>
         </div>
         <CampaignStatusBadge status={campaign.status} />
@@ -595,22 +630,13 @@ export default function AdminDashboardPage() {
                     <p className="font-medium text-green-800">Spende bestätigt! Vielen Dank!</p>
                     {campaign.donation_proof_url && (
                       <div>
-                        {campaign.donation_proof_url.startsWith('data:image') ? (
+                        <button type="button" onClick={() => setLightboxUrl(campaign.donation_proof_url!)} className="block">
                           <img
                             src={campaign.donation_proof_url}
                             alt="Spendennachweis"
-                            className="mt-2 max-h-48 rounded-md object-contain"
+                            className="mt-2 max-h-48 rounded-md object-contain hover:opacity-90 transition-opacity cursor-pointer"
                           />
-                        ) : (
-                          <a
-                            href={sanitizeUrl(campaign.donation_proof_url)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-sm text-green-700 hover:underline"
-                          >
-                            Spendennachweis ansehen
-                          </a>
-                        )}
+                        </button>
                       </div>
                     )}
                     {charity?.website_url && (
@@ -676,10 +702,11 @@ export default function AdminDashboardPage() {
 
               {campaign.status === 'active' && !campaign.donation_confirmed && (
                 <p className="text-xs text-muted-foreground">
-                  Beenden Sie die Kampagne, wenn alle Teilnahmen eingegangen sind. Danach können Sie
+                  Beende die Kampagne, wenn alle Teilnahmen eingegangen sind. Danach kannst du
                   die Spende bestätigen.
                 </p>
               )}
+
             </CardContent>
           </Card>
         </div>
@@ -739,11 +766,21 @@ export default function AdminDashboardPage() {
                           </p>
                         )}
                         {c.verification_type === 'screenshot' && (
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                            <ImageIcon className="h-3 w-3" />
-                            <span>
-                              {c.screenshot_url ? 'Screenshot vorhanden' : 'Kein Screenshot'}
-                            </span>
+                          <div className="space-y-2">
+                            {c.screenshot_url ? (
+                              <button type="button" onClick={() => setLightboxUrl(c.screenshot_url)} className="block text-left">
+                                <img
+                                  src={c.screenshot_url}
+                                  alt="Screenshot-Nachweis"
+                                  className="rounded-md border max-h-48 w-auto hover:opacity-90 transition-opacity cursor-pointer"
+                                />
+                              </button>
+                            ) : (
+                              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                                <ImageIcon className="h-3 w-3" />
+                                <span>Kein Screenshot</span>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -783,7 +820,7 @@ export default function AdminDashboardPage() {
           <DialogHeader>
             <DialogTitle>Spende bestätigen</DialogTitle>
             <DialogDescription>
-              Bestätigen Sie, dass die Spende überwiesen wurde.
+              Bestätige, dass die Spende überwiesen wurde.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -815,11 +852,10 @@ export default function AdminDashboardPage() {
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription className="text-xs leading-relaxed">
-                <strong>Wichtig:</strong> Der Spendennachweis wird öffentlich auf der Kampagnenseite
-                angezeigt. Bitte schwärze vor dem Hochladen alle sensiblen Daten
-                (IBAN, Kontonummern, vollständige Namen, Adressen) auf dem Bild.
-                Du kannst dafür z.B. die Bearbeitungsfunktion deines Smartphones oder ein
-                Bildbearbeitungsprogramm nutzen.
+                <strong>Wichtig:</strong> {campaign?.is_public
+                  ? 'Der Spendennachweis wird öffentlich auf der Kampagnenseite angezeigt. Bitte schwärze vor dem Hochladen alle sensiblen Daten (IBAN, Kontonummern, vollständige Namen, Adressen) auf dem Bild.'
+                  : 'Bitte schwärze vor dem Hochladen alle sensiblen Daten (IBAN, Kontonummern, vollständige Namen, Adressen) auf dem Bild. Der Nachweis ist nur über deinen Admin-Link sichtbar.'
+                }
               </AlertDescription>
             </Alert>
 
@@ -885,6 +921,57 @@ export default function AdminDashboardPage() {
                 <>
                   <CheckCircle className="h-4 w-4" /> Bestätigen
                 </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Screenshot Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 z-50 rounded-full bg-white/20 hover:bg-white/40 p-2 transition-colors"
+          >
+            <XCircle className="h-6 w-6 text-white" />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Screenshot-Nachweis"
+            className="max-h-[90vh] max-w-[95vw] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+
+      {/* Delete Campaign Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Kampagne löschen</DialogTitle>
+            <DialogDescription className="space-y-2">
+              <span className="block">Bist du sicher? Die Kampagne und alle zugehörigen Einreichungen werden unwiderruflich gelöscht.</span>
+              {campaign?.status === 'completed' && (
+                <span className="block text-amber-600 font-medium">
+                  Hinweis: Abgeschlossene Kampagnen sollten bestehen bleiben – sie zeigen anderen, was bereits erreicht wurde, und können als Motivation dienen.
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={actionLoading}>
+              Abbrechen
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteCampaign} disabled={actionLoading}>
+              {actionLoading ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Wird gelöscht...</>
+              ) : (
+                <><Trash2 className="h-4 w-4" /> Endgültig löschen</>
               )}
             </Button>
           </DialogFooter>

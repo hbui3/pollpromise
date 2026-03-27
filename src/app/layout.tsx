@@ -8,7 +8,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://pollpromise.de"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://pollpromise.com"),
   title: "PollPromise – Umfragen für den guten Zweck",
   description:
     "Kostenlose Plattform für Forscher: Pro Umfrage-Teilnahme wird an eine gemeinnützige Organisation gespendet. Mehr Rücklauf, mehr Wirkung.",
@@ -27,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="de">
-      <body className={inter.className}>
+      <body className={`${inter.className} flex flex-col min-h-screen`}>
         <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
           <div className="container mx-auto px-4 h-16 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl">
@@ -65,14 +65,14 @@ export default function RootLayout({
           </div>
         </header>
 
-        <main className="min-h-[calc(100vh-8rem)]">{children}</main>
+        <main className="flex-1">{children}</main>
 
-        <footer className="border-t py-8 mt-16">
+        <footer className="border-t py-8 mt-auto">
           <div className="container mx-auto px-4 space-y-4">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
               <div className="text-center sm:text-left">
                 <p>
-                  PollPromise – Kein Geld fließt durch die Plattform.
+                  © {new Date().getFullYear()} PollPromise – Umfragen mit Wirkung.
                 </p>
               </div>
               <nav className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm">
@@ -108,8 +108,17 @@ export default function RootLayout({
                 </Link>
               </nav>
             </div>
-            <div className="flex justify-center">
+            <div className="flex justify-center items-center gap-3 text-xs text-muted-foreground">
               <VisitorTracker />
+              <span>·</span>
+              <a
+                href="https://github.com/hbui3/pollpromise"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-foreground transition-colors inline-flex items-center gap-1"
+              >
+                Open Source auf GitHub
+              </a>
             </div>
           </div>
         </footer>

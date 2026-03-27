@@ -28,6 +28,7 @@ export interface Database {
           donation_confirmed: boolean
           donation_proof_url: string | null
           target_audience: string | null
+          creator_name: string | null
           is_public: boolean
           created_at: string
           expires_at: string | null

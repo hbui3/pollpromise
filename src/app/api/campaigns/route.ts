@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { generateSlug, isHttpUrl, MAX_LENGTHS } from '@/lib/utils'
 
-const PUBLIC_FIELDS = 'id, slug, title, description, target_audience, survey_url, estimated_minutes, budget_cents, donation_per_completion_cents, verification_method, locked_charity_id, status, donation_confirmed, donation_proof_url, created_at, expires_at' as const
+const PUBLIC_FIELDS = 'id, slug, title, description, target_audience, creator_name, survey_url, estimated_minutes, budget_cents, donation_per_completion_cents, verification_method, locked_charity_id, status, donation_confirmed, donation_proof_url, created_at, expires_at' as const
 
 export async function GET(request: NextRequest) {
   try {
@@ -103,8 +103,11 @@ export async function POST(request: NextRequest) {
       verificationUrl,
       is_public,
       isPublic,
+      creator_name,
+      creatorName,
     } = body
 
+    const resolvedCreatorName = creator_name || creatorName || null
     const resolvedTargetAudience = target_audience || targetAudience || null
     const resolvedVerificationUrl = verification_url || verificationUrl || null
 
@@ -205,6 +208,7 @@ export async function POST(request: NextRequest) {
         completion_code: resolvedCompletionCode || null,
         verification_url: resolvedVerificationUrl,
         locked_charity_id,
+        creator_name: resolvedCreatorName?.trim()?.substring(0, 100) || null,
         is_public: resolvedIsPublic,
       })
       .select('id, slug, admin_token')
@@ -295,6 +299,47 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json(updated)
   } catch (err) {
     console.error('PATCH /api/campaigns error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { admin_token } = body
+
+    if (!admin_token || typeof admin_token !== 'string') {
+      return NextResponse.json({ error: 'admin_token is required' }, { status: 400 })
+    }
+
+    // Verify campaign exists with this admin_token
+    const { data: existing, error: fetchError } = await supabase
+      .from('campaigns')
+      .select('id')
+      .eq('admin_token', admin_token)
+      .single()
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: 'Campaign not found or invalid admin_token' }, { status: 404 })
+    }
+
+    // Delete completions first (cascade should handle this, but be explicit)
+    await supabase.from('completions').delete().eq('campaign_id', existing.id)
+
+    // Delete the campaign
+    const { error: deleteError } = await supabase
+      .from('campaigns')
+      .delete()
+      .eq('id', existing.id)
+
+    if (deleteError) {
+      console.error('Delete campaign error:', deleteError)
+      return NextResponse.json({ error: 'Failed to delete campaign' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('DELETE /api/campaigns error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

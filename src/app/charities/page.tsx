@@ -1,6 +1,7 @@
-import { supabase } from '@/lib/supabase'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { sanitizeUrl, formatCents } from '@/lib/utils'
-import { getDonationsByCharity } from '@/lib/donations'
 import {
   Card,
   CardContent,
@@ -9,26 +10,88 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ExternalLink, Heart, TrendingUp, HandHeart } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import {
+  ExternalLink,
+  Heart,
+  TrendingUp,
+  HandHeart,
+  Search,
+  Building2,
+  MapPin,
+  Loader2,
+} from 'lucide-react'
 
-export const revalidate = 60
+type DonationSummary = {
+  charity_id: string | null
+  charity_name: string
+  total_donated_cents: number
+  campaign_count: number
+  website_url: string | null
+}
 
-export default async function CharitiesPage() {
-  const [{ data: charities, error }, { charities: donationSummaries, total_donated_cents }] =
-    await Promise.all([
-      supabase.from('charities').select('*').order('name'),
-      getDonationsByCharity(),
-    ])
+type BetterplaceCharity = {
+  betterplace_id: number
+  name: string
+  description: string | null
+  city: string | null
+  logo_url: string | null
+  website_url: string | null
+  betterplace_url: string | null
+}
 
-  // Create a map for quick lookup: charity_id -> donation summary
-  const donationMap = new Map(
-    donationSummaries
-      .filter((d) => d.charity_id !== null)
-      .map((d) => [d.charity_id!, d])
-  )
-  const sonstigesDonation = donationSummaries.find(
-    (d) => d.charity_id === null
-  )
+export default function CharitiesPage() {
+  // Donation data
+  const [donationSummaries, setDonationSummaries] = useState<DonationSummary[]>([])
+  const [totalDonated, setTotalDonated] = useState(0)
+
+  // Betterplace search
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<BetterplaceCharity[]>([])
+  const [topOrgs, setTopOrgs] = useState<BetterplaceCharity[]>([])
+  const [searching, setSearching] = useState(false)
+  const [loadingDonations, setLoadingDonations] = useState(true)
+
+  // Load donation data
+  useEffect(() => {
+    fetch('/api/donations')
+      .then((r) => r.json())
+      .then((data) => {
+        setDonationSummaries(data.charities || [])
+        setTotalDonated(data.total_donated_cents || 0)
+      })
+      .finally(() => setLoadingDonations(false))
+  }, [])
+
+  // Load top 20 orgs on mount
+  useEffect(() => {
+    fetch('/api/betterplace/top')
+      .then((r) => r.json())
+      .then((data) => setTopOrgs(data))
+  }, [])
+
+  // Search with debounce
+  useEffect(() => {
+    if (query.length < 2) {
+      setResults([])
+      return
+    }
+    setSearching(true)
+    const timeout = setTimeout(() => {
+      fetch(`/api/betterplace/search?q=${encodeURIComponent(query)}&limit=20`)
+        .then((r) => r.json())
+        .then((data) => {
+          setResults(Array.isArray(data) ? data : [])
+          setSearching(false)
+        })
+        .catch(() => setSearching(false))
+    }, 300)
+    return () => clearTimeout(timeout)
+  }, [query])
+
+  const displayedOrgs = query.length >= 2 ? results : topOrgs
+  const sonstigesDonation = donationSummaries.find((d) => d.charity_id === null)
+  const namedDonations = donationSummaries.filter((d) => d.charity_id !== null)
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-5xl space-y-10 md:space-y-14">
@@ -40,15 +103,16 @@ export default async function CharitiesPage() {
           </div>
         </div>
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-          Spendenorganisationen
+          Organisationen
         </h1>
         <p className="text-muted-foreground max-w-xl mx-auto">
-          Diese Organisationen können bei Kampagnen gewählt werden.
+          Durchsuche über 55.000 gemeinnützige Organisationen von betterplace.org
+          – oder sieh dir an, wohin bereits gespendet wurde.
         </p>
       </div>
 
       {/* Donation Overview */}
-      {total_donated_cents > 0 && (
+      {!loadingDonations && totalDonated > 0 && (
         <section>
           <div className="text-center mb-6 space-y-2">
             <div className="flex justify-center">
@@ -57,26 +121,22 @@ export default async function CharitiesPage() {
               </div>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold">
-              Spenden pro Organisation
+              Bisherige Spenden
             </h2>
             <p className="text-muted-foreground">
               Insgesamt{' '}
               <strong className="text-green-700">
-                {formatCents(total_donated_cents)}
+                {formatCents(totalDonated)}
               </strong>{' '}
               durch PollPromise-Kampagnen gespendet.
             </p>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {donationSummaries.map((summary, index) => (
+            {namedDonations.map((summary, index) => (
               <Card
-                key={summary.charity_id ?? 'sonstiges'}
-                className={
-                  summary.charity_id
-                    ? 'border-green-100 hover:border-green-300 transition-all'
-                    : 'border-dashed'
-                }
+                key={summary.charity_id}
+                className="border-green-100 hover:border-green-300 transition-all"
               >
                 <CardContent className="pt-5 pb-4 space-y-2">
                   <div className="flex items-start justify-between gap-2">
@@ -86,7 +146,7 @@ export default async function CharitiesPage() {
                         {summary.charity_name}
                       </span>
                     </div>
-                    {index === 0 && summary.charity_id && (
+                    {index === 0 && (
                       <Badge
                         variant="outline"
                         className="text-[10px] shrink-0 border-green-300 text-green-700"
@@ -118,97 +178,131 @@ export default async function CharitiesPage() {
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </section>
-      )}
 
-      {/* All Charities */}
-      <section>
-        <h2 className="text-xl font-semibold mb-4">Alle Organisationen</h2>
-        {error ? (
-          <p className="text-center text-destructive">
-            Fehler beim Laden der Organisationen. Bitte versuchen Sie es später
-            erneut.
-          </p>
-        ) : !charities || charities.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            Noch keine Organisationen vorhanden.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {charities.map((charity) => {
-              const donation = donationMap.get(charity.id)
-              return (
-                <Card key={charity.id} className="flex flex-col">
-                  <CardHeader className="pb-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <CardTitle className="text-lg">{charity.name}</CardTitle>
-                      {donation && (
-                        <Badge
-                          variant="outline"
-                          className="shrink-0 text-xs border-green-300 text-green-700"
-                        >
-                          {formatCents(donation.total_donated_cents)}
-                        </Badge>
-                      )}
-                    </div>
-                    {charity.description && (
-                      <CardDescription className="line-clamp-3">
-                        {charity.description}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent className="mt-auto pt-0">
-                    <div className="flex items-center justify-between">
-                      {charity.website_url && (
-                        <a
-                          href={sanitizeUrl(charity.website_url)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
-                        >
-                          Website besuchen
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
-                      )}
-                      {donation && (
-                        <span className="text-xs text-muted-foreground">
-                          {donation.campaign_count === 1
-                            ? '1 Kampagne'
-                            : `${donation.campaign_count} Kampagnen`}
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        )}
-
-        {/* Sonstiges at the bottom */}
-        {sonstigesDonation && (
-          <div className="mt-6">
-            <Card className="border-dashed">
-              <CardContent className="pt-5 pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="font-medium text-sm text-muted-foreground">
-                      Sonstiges (nicht-öffentliche Kampagnen)
-                    </p>
-                    <p className="text-lg font-bold text-green-700">
-                      {formatCents(sonstigesDonation.total_donated_cents)}
-                    </p>
+            {sonstigesDonation && (
+              <Card className="border-dashed">
+                <CardContent className="pt-5 pb-4 space-y-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <HandHeart className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <span className="font-medium text-sm text-muted-foreground truncate">
+                      Sonstiges
+                    </span>
                   </div>
+                  <p className="text-2xl font-bold text-green-700">
+                    {formatCents(sonstigesDonation.total_donated_cents)}
+                  </p>
                   <p className="text-xs text-muted-foreground">
+                    aus{' '}
                     {sonstigesDonation.campaign_count === 1
                       ? '1 Kampagne'
                       : `${sonstigesDonation.campaign_count} Kampagnen`}
                   </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </div>
+        </section>
+      )}
+
+      {/* Organization Search */}
+      <section className="space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl md:text-3xl font-bold">
+            Organisation suchen
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Finde gemeinnützige Organisationen, die bei einer Kampagne als Spendenziel gewählt werden können.
+          </p>
+        </div>
+
+        <div className="max-w-lg mx-auto relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="z.B. WWF, UNICEF, Tierschutz..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+
+        {searching && (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {!searching && (
+          <>
+            {query.length >= 2 && results.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Keine Organisationen für &quot;{query}&quot; gefunden.
+              </p>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {displayedOrgs.map((org) => (
+                    <Card key={org.betterplace_id} className="flex flex-col hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start gap-3">
+                          {org.logo_url ? (
+                            <img
+                              src={org.logo_url}
+                              alt=""
+                              className="h-10 w-10 rounded-lg object-contain bg-gray-50 shrink-0"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                              <Building2 className="h-5 w-5 text-gray-400" />
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <CardTitle className="text-sm leading-tight">{org.name}</CardTitle>
+                            {org.city && (
+                              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                                {org.city}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        {org.description && (
+                          <CardDescription className="line-clamp-2 text-xs mt-2">
+                            {org.description}
+                          </CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent className="mt-auto pt-0">
+                        <div className="flex items-center gap-3">
+                          {org.website_url && (
+                            <a
+                              href={sanitizeUrl(org.website_url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                            >
+                              Website
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                          {org.betterplace_url && (
+                            <a
+                              href={sanitizeUrl(org.betterplace_url)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary hover:underline"
+                            >
+                              betterplace.org
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </>
+            )}
+          </>
         )}
       </section>
     </div>

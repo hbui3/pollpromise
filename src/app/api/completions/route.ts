@@ -115,11 +115,37 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Screenshot is too large (max ~5MB)' }, { status: 400 })
       }
 
-      // For now, store a placeholder or base64 reference
+      // Upload screenshot to Supabase Storage
       let screenshotUrl: string | null = null
-      if (screenshot_data && typeof screenshot_data === 'string') {
-        // Placeholder: in production, upload to Supabase Storage and get a URL
-        screenshotUrl = `pending_upload_${Date.now()}`
+      if (screenshot_data && typeof screenshot_data === 'string' && screenshot_data.startsWith('data:image/')) {
+        // Extract mime type and base64 content
+        const matches = screenshot_data.match(/^data:(image\/\w+);base64,(.+)$/)
+        if (matches) {
+          const mimeType = matches[1]
+          const base64Content = matches[2]
+          const ext = mimeType.split('/')[1] || 'png'
+          const fileName = `${campaign_id}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
+
+          const buffer = Buffer.from(base64Content, 'base64')
+
+          const { error: uploadError } = await supabase.storage
+            .from('screenshots')
+            .upload(fileName, buffer, {
+              contentType: mimeType,
+              upsert: false,
+            })
+
+          if (uploadError) {
+            console.error('Screenshot upload error:', uploadError)
+            return NextResponse.json({ error: 'Failed to upload screenshot' }, { status: 500 })
+          }
+
+          const { data: publicUrl } = supabase.storage
+            .from('screenshots')
+            .getPublicUrl(fileName)
+
+          screenshotUrl = publicUrl.publicUrl
+        }
       }
 
       const { data: completion, error: insertError } = await supabase

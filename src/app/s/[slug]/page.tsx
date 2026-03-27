@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buttonVariants } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Clock, Heart, Users, ExternalLink, CheckCircle, UserCheck } from 'lucide-react'
+import { ImageLightbox } from '@/components/image-lightbox'
 
 interface PageProps {
   params: { slug: string }
@@ -103,23 +104,13 @@ export default async function CampaignPage({ params }: PageProps) {
                   <CheckCircle className="h-4 w-4" />
                   <span className="text-sm font-medium">Spende bestätigt</span>
                 </div>
-                {campaign.donation_proof_url.startsWith('data:image') ? (
-                  <img
+                {campaign.donation_proof_url.startsWith('data:image') || campaign.donation_proof_url.startsWith('http') ? (
+                  <ImageLightbox
                     src={campaign.donation_proof_url}
                     alt="Spendennachweis"
                     className="max-w-full max-h-96 mx-auto rounded-lg border object-contain"
                   />
-                ) : (
-                  <a
-                    href={sanitizeUrl(campaign.donation_proof_url)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    Spendennachweis ansehen
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
+                ) : null}
               </div>
             )}
           </CardContent>
@@ -172,7 +163,7 @@ export default async function CampaignPage({ params }: PageProps) {
               <Heart className="h-5 w-5 text-green-600 mt-0.5 shrink-0" />
               <div className="space-y-1">
                 <p className="font-medium text-green-800 dark:text-green-300">
-                  Pro Teilnahme werden {formatCents(campaign.donation_per_completion_cents)} gespendet
+                  Pro Teilnahme werden {formatCents(campaign.donation_per_completion_cents)}{campaign.creator_name ? ` von ${campaign.creator_name}` : ''} gespendet
                 </p>
                 {charityName && (
                   <p className="text-sm text-green-700 dark:text-green-400">

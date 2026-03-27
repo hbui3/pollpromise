@@ -1,3 +1,4 @@
+import { GlobalStats } from "@/components/global-stats"
 import Link from "next/link"
 import {
   ClipboardList,
@@ -41,14 +42,14 @@ export default function LandingPage() {
             </Badge>
             <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
               Deine Umfrage.{" "}
-              <span className="text-primary">Ihre Spende.</span>{" "}
+              <span className="text-primary">Deine Spende.</span>{" "}
               <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 Mehr Teilnehmer.
               </span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Zu wenig Teilnehmer bei deiner Studie? Mit PollPromise spendest du
-              pro ausgefüllter Umfrage an eine gemeinnützige Organisation –
+              pro ausgefüllter Umfrage an eine gemeinnützige <a href="/charities" className="underline decoration-primary/50 hover:decoration-primary transition-colors">Organisation</a> –
               und steigerst so deine Teilnahmequote.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
@@ -69,27 +70,8 @@ export default function LandingPage() {
         <div className="absolute bottom-0 left-0 right-0 h-16 md:h-24 bg-gradient-to-t from-background to-transparent" />
       </section>
 
-      {/* Trusted Organizations */}
-      <section className="py-6 md:py-10 border-b">
-        <div className="container mx-auto px-4">
-          <p className="text-center text-xs text-muted-foreground uppercase tracking-wider mb-4">
-            Spenden gehen an Organisationen wie
-          </p>
-          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:gap-x-10 text-sm md:text-base font-medium text-muted-foreground">
-            <span>Ärzte ohne Grenzen</span>
-            <span className="hidden sm:inline text-muted-foreground/30">·</span>
-            <span>UNICEF</span>
-            <span className="hidden sm:inline text-muted-foreground/30">·</span>
-            <span>WWF</span>
-            <span className="hidden sm:inline text-muted-foreground/30">·</span>
-            <span>Welthungerhilfe</span>
-            <span className="hidden sm:inline text-muted-foreground/30">·</span>
-            <span>Tafel Deutschland</span>
-            <span className="hidden sm:inline text-muted-foreground/30">·</span>
-            <span className="text-primary">+ weitere</span>
-          </div>
-        </div>
-      </section>
+      {/* Global Stats */}
+      <GlobalStats />
 
       {/* Problem → Solution */}
       <section className="py-8 md:py-24 bg-gradient-to-b from-transparent via-green-50/30 to-transparent">

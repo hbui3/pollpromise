@@ -65,10 +65,11 @@ export default function CreateCampaignPage() {
   const [estimatedMinutes, setEstimatedMinutes] = useState("")
   const [totalBudget, setTotalBudget] = useState("")
   const [perParticipation, setPerParticipation] = useState("1.00")
-  const [verificationMethod, setVerificationMethod] = useState("code")
+  const [verificationMethod, setVerificationMethod] = useState("screenshot")
   const [completionCode, setCompletionCode] = useState("")
   const [verificationUrl, setVerificationUrl] = useState("")
   const [targetAudience, setTargetAudience] = useState("")
+  const [creatorName, setCreatorName] = useState("")
   const [isPublic, setIsPublic] = useState(false)
 
   // Charity picker state
@@ -243,6 +244,7 @@ export default function CreateCampaignPage() {
             : null,
         verificationUrl:
           verificationMethod === "url" ? normalizeUrl(verificationUrl) : null,
+        creatorName: creatorName.trim() || null,
         isPublic: isExistingCharity ? isPublic : false,
         fixedCharityName: effectiveCharityName || null,
         fixedCharityDescription:
@@ -793,7 +795,7 @@ export default function CreateCampaignPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="newCharityWebsite">Website</Label>
+                    <Label htmlFor="newCharityWebsite">Website (optional)</Label>
                     <div className="relative">
                       <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                       <Input
@@ -848,6 +850,22 @@ export default function CreateCampaignPage() {
                 </div>
               </div>
             )}
+
+            {/* Creator name */}
+            <div className="space-y-2">
+              <Label htmlFor="creatorName">
+                Dein Name / Organisation
+                <InfoTooltip text="Wird auf der Kampagnenseite angezeigt, z.B. 'Pro Teilnahme werden 1,00 € von Max Mustermann gespendet'." />
+              </Label>
+              <Input
+                id="creatorName"
+                type="text"
+                placeholder="z.B. Max Mustermann, Verein X, ..."
+                value={creatorName}
+                onChange={(e) => setCreatorName(e.target.value)}
+                maxLength={100}
+              />
+            </div>
 
             {/* Error message */}
             {error && (
