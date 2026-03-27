@@ -9,6 +9,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Clock, Heart, Users, ExternalLink, CheckCircle, UserCheck } from 'lucide-react'
 import { ImageLightbox } from '@/components/image-lightbox'
+import { CampaignActions } from '@/components/campaign-actions'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -191,24 +192,16 @@ export default async function CampaignPage({ params }: PageProps) {
               </span>
             </div>
             <Progress value={budgetProgress} />
+            <p className="text-xs text-muted-foreground">Wird aktualisiert, sobald der Ersteller deine Teilnahme verifiziert hat.</p>
           </div>
 
-          {/* CTA */}
-          <div className="space-y-3 pt-2">
-            <a href={sanitizeUrl(campaign.survey_url)} target="_blank" rel="noopener noreferrer" className={cn(buttonVariants({ size: "lg" }), "w-full text-base")}>
-                Zur Umfrage
-                <ExternalLink className="h-4 w-4 ml-2" />
-            </a>
-
-            <div className="text-center">
-              <Link
-                href={`/s/${slug}/verify`}
-                className="text-sm text-primary hover:underline inline-flex items-center gap-1"
-              >
-                Umfrage abgeschlossen? Hier verifizieren →
-              </Link>
-            </div>
-          </div>
+          {/* CTA + Verification */}
+          <CampaignActions
+            campaignId={campaign.id}
+            slug={slug}
+            surveyUrl={sanitizeUrl(campaign.survey_url)}
+            verificationMethod={campaign.verification_method}
+          />
         </CardContent>
       </Card>
     </div>
