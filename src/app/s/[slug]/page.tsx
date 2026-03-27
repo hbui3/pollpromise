@@ -11,11 +11,11 @@ import { Clock, Heart, Users, ExternalLink, CheckCircle, UserCheck } from 'lucid
 import { ImageLightbox } from '@/components/image-lightbox'
 
 interface PageProps {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
 }
 
 export default async function CampaignPage({ params }: PageProps) {
-  const { slug } = params
+  const { slug } = await params
 
   // Fetch campaign by slug
   const { data: campaign } = await supabase
