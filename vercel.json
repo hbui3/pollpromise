@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/sync-betterplace",
+      "schedule": "0 3 * * 0"
+    }
+  ]
+}
