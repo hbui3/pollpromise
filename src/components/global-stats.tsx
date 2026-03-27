@@ -17,7 +17,7 @@ export function GlobalStats() {
       .catch(() => {})
   }, [])
 
-  if (!stats || (stats.total_completions === 0 && stats.confirmed_donation_cents === 0)) {
+  if (!stats) {
     return null
   }
 
